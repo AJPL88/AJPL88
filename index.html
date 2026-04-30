@@ -147,6 +147,8 @@
   .section-label.visible { opacity: 1; }
   #label-a { top: 50%; left: 6vw; transform: translateY(-50%); }
   #label-b { top: 50%; right: 6vw; transform: translateY(-50%); text-align: right; }
+  #label-c { top: 50%; left: 6vw; transform: translateY(-50%); }
+  #label-d { top: 50%; right: 6vw; transform: translateY(-50%); text-align: right; }
 
   @keyframes cue-in {
     from { opacity: 0; transform: translateX(-50%) translateY(12px); }
@@ -202,12 +204,12 @@
 </div>
 
 <div class="hud readout">
-  VERTICES <em id="vCount">—</em><br>
+  <!-- VERTICES <em id="vCount">—</em><br>
   EDGES&nbsp;&nbsp;&nbsp;&nbsp; <em id="eCount">—</em><br>
   CAM θ&nbsp;&nbsp;&nbsp;&nbsp; <em id="camTheta">—</em><br>
   CAM r&nbsp;&nbsp;&nbsp;&nbsp; <em id="camR">—</em><br>
   CAM φ&nbsp;&nbsp;&nbsp;&nbsp; <em id="camP">-</em><br>
-  s <em id="scrollS">-</em>
+  s <em id="scrollS">-</em> -->
 </div>
 
 <div class="hud hero-title" id="heroTitle">
@@ -215,8 +217,10 @@
   <sub>3lb Combat Robot - Swerve + Shuffle Drive</sub>
 </div>
 
-<div class="hud section-label" id="label-a">Weapon<br><strong>340g Beater<br>32k rpm, 1.2kJ</strong></div>
-<div class="hud section-label" id="label-b">Drive<br><strong>2x Shuffler Pods<br>3 MPH</strong></div>
+<div class="hud section-label" id="label-a">Weapon<br><strong>340g Beater<br>32k rpm, 1.2kJ<br>4340 Steel</strong></div>
+<div class="hud section-label" id="label-b">Drive<br><strong>2x Shuffler Pods<br>3 MPH<br>Cast Urethane</strong></div>
+<div class="hud section-label" id="label-c">Body<br><strong>TPU Unibody<br>95A, 250g</strong></div>
+<div class="hud section-label" id="label-d">Armor<br><strong>Aluminum Plating<br>6061-T6</strong></div>
 
 <div class="hud" id="progress-track"><div id="progress-fill"></div></div>
 <div class="hud" id="scroll-cue">scroll</div>
@@ -253,6 +257,8 @@ function applyCameraRig() {
   camera.lookAt(0, 0, 0);
 }
 applyCameraRig();
+
+const lerp = (start, end, t) => start * (1 - t) + end * t;
 
 /* ================================================================
    HIDDEN-LINE WIREFRAME HELPER
@@ -362,6 +368,8 @@ window.addEventListener('scroll', () => {
   document.getElementById('scroll-cue').style.opacity  = Math.max(0, 1 - scrollT * 8);
   document.getElementById('label-a').classList.toggle('visible', scrollT > 0.2 && scrollT < 0.35);
   document.getElementById('label-b').classList.toggle('visible', scrollT > 0.35 && scrollT < 0.50);
+  document.getElementById('label-c').classList.toggle('visible', scrollT > 0.6 && scrollT < 1.01);
+  document.getElementById('label-d').classList.toggle('visible', scrollT > 0.6 && scrollT < 1.01);
 }, { passive: true });
 
 /* ================================================================
@@ -396,16 +404,21 @@ function animate() {
     sway = 0;
   } else if (s < 0.5) {
     targetR = 4.46;
-    targetTh = 310.6*3.1415/180.0 + (s-0.4)/0.1*((480-310.6)*3.1415/180);
+    targetTh = lerp(310.6*3.1415/180.0,480*3.1415/180.0,(s-0.4)/0.1);
     targetPh = 3;
     sway = 0;
   } else if (s < 0.6) {
     targetR = 4.46;
-    // targetTh = 310.6*3.1415/180.0 + (s-0.4)/0.1*((480-310.6)*3.1415/180);
-    targetTh = 8.377 - (s - 0.5)/0.1*((480-310.6)*3.1415/180)
-    targetPh = 3;
+    targetTh = lerp(480*3.1415/180.0,360*3.1415/180.0,(s-0.5)/0.1)
+    targetPh = lerp(3,3.1415/2,(s-0.5)/0.1);
+    sway = 0;
+  } else {
+    targetR = 4.46;
+    targetTh = lerp(360*3.1415/180.0,-90*3.1415/180.0,(s-0.6)/0.4)
+    targetPh = 3.1415/2;
     sway = 0;
   }
+  
   // const targetR  = 7.5 - s * 4.3;
   // const targetTh = s * Math.PI * 1.15;
   // const targetPh = Math.PI / 5 + s * (Math.PI / 2.2 - Math.PI / 5);
@@ -427,12 +440,12 @@ function animate() {
 
   if (primaryLineMat) primaryLineMat.opacity = 0.80 + 0.15 * Math.sin(t * 0.9);
 
-  document.getElementById('vCount').textContent   = totalVerts.toLocaleString();
-  document.getElementById('eCount').textContent   = totalEdges.toLocaleString();
-  document.getElementById('camTheta').textContent = (smooth.theta * 180 / Math.PI).toFixed(1) + '°';
-  document.getElementById('camR').textContent     = smooth.radius.toFixed(2);
-  document.getElementById('camP').textContent     = smooth.phi.toFixed(2);
-  document.getElementById('scrollS').textContent  = scrollT.toFixed(4);
+  // document.getElementById('vCount').textContent   = totalVerts.toLocaleString();
+  // document.getElementById('eCount').textContent   = totalEdges.toLocaleString();
+  // document.getElementById('camTheta').textContent = (smooth.theta * 180 / Math.PI).toFixed(1) + '°';
+  // document.getElementById('camR').textContent     = smooth.radius.toFixed(2);
+  // document.getElementById('camP').textContent     = smooth.phi.toFixed(2);
+  // document.getElementById('scrollS').textContent  = scrollT.toFixed(4);
 
   renderer.render(scene, camera);
 }
