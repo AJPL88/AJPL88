@@ -1,66 +1,450 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ajpl88</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframe — Form Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital@0;1&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    <style>
-        body {
-            margin: 0;
-            background: #111;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            perspective: 1000px;
-        }
+  :root {
+    --bg:      #03040d;
+    --wire:    #00f0ff;
+    --wire2:   #0066ff;
+    --green:   #00ffaa;
+    --text:    rgba(255,255,255,0.55);
+    --text-hi: rgba(255,255,255,0.92);
+    --mono:    'DM Mono', monospace;
+    --display: 'Unbounded', sans-serif;
+  }
 
-        .scene {
-            width: 200px;
-            height: 200px;
-        }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    height: 500vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
 
-        .cube {
-            width: 200px;
-            height: 200px;
-            position: relative;
-            transform-style: preserve-3d;
-            animation: rotate 6s infinite linear;
-        }
+  #canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    display: block;
+  }
 
-        .face {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            background: rgba(0, 150, 255, 0.7);
-            border: 2px solid white;
-        }
+  .hud {
+    position: fixed;
+    z-index: 20;
+    pointer-events: none;
+    font-family: var(--mono);
+  }
 
-        .front  { transform: rotateY(0deg) translateZ(100px); }
-        .back   { transform: rotateY(180deg) translateZ(100px); }
-        .right  { transform: rotateY(90deg) translateZ(100px); }
-        .left   { transform: rotateY(-90deg) translateZ(100px); }
-        .top    { transform: rotateX(90deg) translateZ(100px); }
-        .bottom { transform: rotateX(-90deg) translateZ(100px); }
+  .stamp {
+    top: 2rem; left: 2.5rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--wire);
+    opacity: 0.7;
+    line-height: 2;
+  }
+  .stamp b { opacity: 0.35; font-weight: 400; }
 
-        @keyframes rotate {
-            from { transform: rotateX(0deg) rotateY(0deg); }
-            to   { transform: rotateX(360deg) rotateY(360deg); }
-        }
-    </style>
+  .readout {
+    top: 2rem; right: 2.5rem;
+    text-align: right;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--text);
+    line-height: 2.2;
+  }
+  .readout em { font-style: normal; color: var(--wire); }
+
+  .hero-title {
+    top: 25%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 90vw;
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(2.8rem, 7.5vw, 7rem);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    color: #fff;
+    transition: opacity 0.2s;
+    text-shadow:
+      0 0 60px rgba(0,240,255,0.25),
+      0 0 120px rgba(0,240,255,0.1);
+  }
+  .hero-title sub {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    color: var(--wire);
+    margin-top: 1.5rem;
+    text-shadow: none;
+    font-weight: 400;
+    vertical-align: baseline;
+  }
+
+  #progress-track { bottom: 0; left: 0; width: 100%; height: 1.5px; }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--wire);
+    box-shadow: 0 0 12px var(--wire), 0 0 30px rgba(0,240,255,0.4);
+    transition: width 0.08s linear;
+  }
+
+  #scroll-cue {
+    bottom: 3.5rem; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text);
+    animation: cue-in 1.2s 1.5s both;
+    transition: opacity 0.3s;
+  }
+  #scroll-cue::before {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 36px;
+    background: linear-gradient(to bottom, transparent, var(--wire));
+    animation: drip 1.8s ease-in-out infinite;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--wire);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    line-height: 1.9;
+  }
+  .section-label strong {
+    display: block;
+    font-family: var(--display);
+    font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+    letter-spacing: -0.02em;
+    color: var(--text-hi);
+    margin-top: 0.3rem;
+    font-weight: 700;
+  }
+  .section-label.visible { opacity: 1; }
+  #label-a { top: 50%; left: 6vw; transform: translateY(-50%); }
+  #label-b { top: 50%; right: 6vw; transform: translateY(-50%); text-align: right; }
+
+  @keyframes cue-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  @keyframes drip {
+    0%,100% { opacity: 0.25; transform: scaleY(0.85); transform-origin: top; }
+    50%      { opacity: 0.9;  transform: scaleY(1.1);  transform-origin: top; }
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(2,3,13,0.7) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .corner { position: fixed; width: 22px; height: 22px; z-index: 15; }
+  .corner svg { width: 100%; height: 100%; }
+  .corner.tl { top: 1.4rem; left: 1.4rem; }
+  .corner.tr { top: 1.4rem; right: 1.4rem; transform: scaleX(-1); }
+  .corner.bl { bottom: 1.4rem; left: 1.4rem; transform: scaleY(-1); }
+  .corner.br { bottom: 1.4rem; right: 1.4rem; transform: scale(-1); }
+</style>
 </head>
-
 <body>
 
-    <div class="scene">
-        <div class="cube">
-            <div class="face front"></div>
-            <div class="face back"></div>
-            <div class="face right"></div>
-            <div class="face left"></div>
-            <div class="face top"></div>
-            <div class="face bottom"></div>
-        </div>
-    </div>
+<canvas id="canvas"></canvas>
 
+<div class="corner tl"><svg viewBox="0 0 22 22" fill="none"><path d="M0 22V0h22" stroke="#00f0ff" stroke-width="1" opacity="0.5"/></svg></div>
+<div class="corner tr"><svg viewBox="0 0 22 22" fill="none"><path d="M0 22V0h22" stroke="#00f0ff" stroke-width="1" opacity="0.5"/></svg></div>
+<div class="corner bl"><svg viewBox="0 0 22 22" fill="none"><path d="M0 22V0h22" stroke="#00f0ff" stroke-width="1" opacity="0.5"/></svg></div>
+<div class="corner br"><svg viewBox="0 0 22 22" fill="none"><path d="M0 22V0h22" stroke="#00f0ff" stroke-width="1" opacity="0.5"/></svg></div>
+
+<div class="hud stamp">
+  Alan Jiang / ST<br>
+  <!-- <b>COMBAT ROBOTICS AT BERKELEY</b><br> -->
+  COMBAT ROBOTICS AT BERKELEY<br>
+  SCROLL ↓ TO EXPLORE
+</div>
+
+<div class="hud readout">
+  VERTICES <em id="vCount">—</em><br>
+  EDGES&nbsp;&nbsp;&nbsp;&nbsp; <em id="eCount">—</em><br>
+  CAM θ&nbsp;&nbsp;&nbsp;&nbsp; <em id="camTheta">—</em><br>
+  CAM r&nbsp;&nbsp;&nbsp;&nbsp; <em id="camR">—</em><br>
+  CAM φ&nbsp;&nbsp;&nbsp;&nbsp; <em id="camP">-</em><br>
+  s <em id="scrollS">-</em>
+</div>
+
+<div class="hud hero-title" id="heroTitle">
+  SYNTAX<br>TERROR
+  <sub>3lb Combat Robot - Swerve + Shuffle Drive</sub>
+</div>
+
+<div class="hud section-label" id="label-a">Weapon<br><strong>340g Beater<br>32k rpm, 1.2kJ</strong></div>
+<div class="hud section-label" id="label-b">Drive<br><strong>2x Shuffler Pods<br>3 MPH</strong></div>
+
+<div class="hud" id="progress-track"><div id="progress-fill"></div></div>
+<div class="hud" id="scroll-cue">scroll</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+<script>
+/* ================================================================
+   RENDERER
+================================================================ */
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x03040d, 1);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x03040d, 0.055);
+
+/* ================================================================
+   CAMERA
+================================================================ */
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 200);
+const smooth = { radius: 7.5, theta: 0.0, phi: Math.PI / 5 };
+
+function applyCameraRig() {
+  const { radius: r, theta: th, phi: ph } = smooth;
+  camera.position.set(
+    r * Math.sin(ph) * Math.sin(th),
+    r * Math.cos(ph),
+    r * Math.sin(ph) * Math.cos(th)
+  );
+  camera.lookAt(0, 0, 0);
+}
+applyCameraRig();
+
+/* ================================================================
+   HIDDEN-LINE WIREFRAME HELPER
+   ------------------------------------------------------------------
+   How it works:
+     Step 1 — Render an invisible solid mesh that writes ONLY to the
+              depth buffer (colorWrite: false). It "claims" the depth
+              of every front-facing surface pixel.
+     Step 2 — Render the EdgeGeometry lines with depthTest: true.
+              Any line fragment that sits behind a front surface will
+              fail the depth test and get discarded — exactly the
+              hidden-line removal effect.
+
+   polygonOffset on the mask pushes its depth values very slightly
+   away from the camera so lines right on the silhouette edge don't
+   z-fight with the mask and disappear incorrectly.
+================================================================ */
+function makeHiddenLineWireframe(geo, color, opacity, crease = 15) {
+  const group = new THREE.Group();
+
+  // 1. Invisible depth-mask mesh
+  const maskMat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    colorWrite: false,       // no colour output
+    depthWrite: true,        // but writes depth values
+    side: THREE.FrontSide,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
+  });
+  group.add(new THREE.Mesh(geo, maskMat));
+
+  // 2. Visible edges — depth-tested against the mask above
+  const edges   = new THREE.EdgesGeometry(geo, crease);
+  const lineMat = new THREE.LineBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    depthTest:  true,
+    depthWrite: false,
+  });
+  const lines = new THREE.LineSegments(edges, lineMat);
+  group.add(lines);
+
+  group.userData.lineMat   = lineMat;
+  group.userData.edgeCount = edges.attributes.position.count / 2;
+  return group;
+}
+
+/* ================================================================
+   SCENE OBJECTS
+================================================================ */
+const wireGroup = new THREE.Group();
+scene.add(wireGroup);
+
+let totalVerts = 0, totalEdges = 0;
+let primaryLineMat = null;
+const nodeGroups = [];
+
+const GLTF_URL = 'robort3.gltf';
+new THREE.GLTFLoader().load(GLTF_URL, (gltf) => {
+  wireGroup.clear(); nodeGroups.length = 0;
+
+  gltf.scene.traverse(child => {
+    if (!child.isMesh) return;
+    child.updateWorldMatrix(true, false);
+    const geo = child.geometry.clone().applyMatrix4(child.matrixWorld);
+    wireGroup.add(makeHiddenLineWireframe(geo, 0x00f0ff, 0.95, 15));
+  });
+
+  // Auto-center & normalize
+  const box  = new THREE.Box3().setFromObject(wireGroup);
+  const size = box.getSize(new THREE.Vector3());
+  wireGroup.position.sub(box.getCenter(new THREE.Vector3()));
+  wireGroup.scale.setScalar(3.5 / Math.max(size.x, size.y, size.z));
+  
+}, undefined, console.error);
+
+/* ================================================================
+   BACKGROUND PARTICLES
+================================================================ */
+(function() {
+  const N = 1200, pos = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const r = 15 + Math.random() * 25;
+    const t = Math.random() * Math.PI * 2;
+    const p = Math.acos(1 - 2 * Math.random());
+    pos[i*3]   = r * Math.sin(p) * Math.cos(t);
+    pos[i*3+1] = r * Math.cos(p);
+    pos[i*3+2] = r * Math.sin(p) * Math.sin(t);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x88ddff, size: 0.045, transparent: true, opacity: 0.4 })));
+})();
+
+/* ================================================================
+   SCROLL
+================================================================ */
+let scrollT = 0;
+
+window.addEventListener('scroll', () => {
+  const max = document.body.scrollHeight - window.innerHeight;
+  scrollT   = Math.min(window.scrollY / max, 1);
+  document.getElementById('progress-fill').style.width = (scrollT * 100) + '%';
+  document.getElementById('heroTitle').style.opacity   = Math.max(0, 1 - scrollT * 5);
+  document.getElementById('scroll-cue').style.opacity  = Math.max(0, 1 - scrollT * 8);
+  document.getElementById('label-a').classList.toggle('visible', scrollT > 0.2 && scrollT < 0.35);
+  document.getElementById('label-b').classList.toggle('visible', scrollT > 0.35 && scrollT < 0.50);
+}, { passive: true });
+
+/* ================================================================
+   ANIMATION LOOP
+================================================================ */
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  const s = scrollT;
+
+  let targetR  = 7.5 - s * 4.3;
+  let targetTh = s * Math.PI * 1.15*2;
+  let targetPh = Math.PI / 5 + s * (Math.PI / 2.2 - Math.PI / 5);
+  let sway     = Math.sin(t * 0.28) * 0.04 * (1 - Math.min(s * 4, 1));
+  if (s < 0.2) {
+    let u = 4*s
+    targetR = 7.5 - u * 3.75;
+    targetTh = u * 2 * 3.1415;
+    targetPh = 1.19
+    sway = Math.sin(t * 0.28) * 0.04 * (1 - Math.min(4*u, 1));
+  } else if (s < 0.35) {
+    targetR = 4.46;
+    targetTh = 310.6*3.1415/180.0;
+    targetPh = 1.19;
+    sway = 0;
+  } else if (s < 0.4) {
+    targetR = 4.46;
+    targetTh = 310.6*3.1415/180.0;
+    targetPh = 1.19 + (s-0.35)/0.05 * (3 - 1.19);
+    sway = 0;
+  } else if (s < 0.5) {
+    targetR = 4.46;
+    targetTh = 310.6*3.1415/180.0 + (s-0.4)/0.1*((480-310.6)*3.1415/180);
+    targetPh = 3;
+    sway = 0;
+  } else if (s < 0.6) {
+    targetR = 4.46;
+    // targetTh = 310.6*3.1415/180.0 + (s-0.4)/0.1*((480-310.6)*3.1415/180);
+    targetTh = 8.377 - (s - 0.5)/0.1*((480-310.6)*3.1415/180)
+    targetPh = 3;
+    sway = 0;
+  }
+  // const targetR  = 7.5 - s * 4.3;
+  // const targetTh = s * Math.PI * 1.15;
+  // const targetPh = Math.PI / 5 + s * (Math.PI / 2.2 - Math.PI / 5);
+  // const sway     = Math.sin(t * 0.28) * 0.04 * (1 - Math.min(s * 4, 1));
+  // if (s < 0.1) targetTh += 0.0035 * (1 - s * 0.6);
+  if (s < 0.1) targetTh += 0.67*Math.sin(0.67*t - 0.5*3.1415) - 3.1415/2 - 3.1415/6;
+
+  smooth.radius += (targetR          - smooth.radius) * 0.055;
+  smooth.theta  += (targetTh + sway  - smooth.theta)  * 0.055;
+  smooth.phi    += (targetPh         - smooth.phi)    * 0.055;
+  applyCameraRig();
+
+  // if (s < 0.1) {wireGroup.rotation.y += 0.0035 * (1 - s)} else {wireGroup.rotation.y += 0};
+  // if (Math.abs(wireGroup.rotation.y) > 2*Math.PI) wireGroup.rotation.y += -1 * Math.sign(wireGroup.rotation.y) * 2 * Math.PI
+  
+  wireGroup.position.y  = Math.sin(t * 0.38) * 0.07;
+
+  nodeGroups.forEach(n => { n.rotation.x += 0.012; n.rotation.z += 0.008; });
+
+  if (primaryLineMat) primaryLineMat.opacity = 0.80 + 0.15 * Math.sin(t * 0.9);
+
+  document.getElementById('vCount').textContent   = totalVerts.toLocaleString();
+  document.getElementById('eCount').textContent   = totalEdges.toLocaleString();
+  document.getElementById('camTheta').textContent = (smooth.theta * 180 / Math.PI).toFixed(1) + '°';
+  document.getElementById('camR').textContent     = smooth.radius.toFixed(2);
+  document.getElementById('camP').textContent     = smooth.phi.toFixed(2);
+  document.getElementById('scrollS').textContent  = scrollT.toFixed(4);
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+});
+
+animate();
+</script>
 </body>
 </html>
