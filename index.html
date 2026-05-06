@@ -3,461 +3,496 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wireframe — Form Study</title>
+<title>AXJIANG - Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital@0;1&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --bg:      #03040d;
-    --wire:    #00f0ff;
-    --wire2:   #0066ff;
-    --green:   #00ffaa;
-    --text:    rgba(255,255,255,0.55);
-    --text-hi: rgba(255,255,255,0.92);
-    --mono:    'DM Mono', monospace;
-    --display: 'Unbounded', sans-serif;
-  }
-
-  html { background: var(--bg); }
-  body {
-    background: var(--bg);
-    height: 500vh;
-    overflow-x: hidden;
-    cursor: crosshair;
-  }
-
-  #canvas {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 0;
-    display: block;
-  }
-
-  .hud {
-    position: fixed;
-    z-index: 20;
-    pointer-events: none;
-    font-family: var(--mono);
-  }
-
-  .stamp {
-    top: 2rem; left: 2.5rem;
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--wire);
-    opacity: 0.7;
-    line-height: 2;
-  }
-  .stamp b { opacity: 0.35; font-weight: 400; }
-
-  .readout {
-    top: 2rem; right: 2.5rem;
-    text-align: right;
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    color: var(--text);
-    line-height: 2.2;
-  }
-  .readout em { font-style: normal; color: var(--wire); }
-
-  .hero-title {
-    top: 25%; left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    width: 90vw;
-    font-family: var(--display);
-    font-weight: 900;
-    font-size: clamp(2.8rem, 7.5vw, 7rem);
-    line-height: 0.92;
-    letter-spacing: -0.03em;
-    color: #fff;
-    transition: opacity 0.2s;
-    text-shadow:
-      0 0 60px rgba(0,240,255,0.25),
-      0 0 120px rgba(0,240,255,0.1);
-  }
-  .hero-title sub {
-    display: block;
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.4em;
-    color: var(--wire);
-    margin-top: 1.5rem;
-    text-shadow: none;
-    font-weight: 400;
-    vertical-align: baseline;
-  }
-
-  #progress-track { bottom: 0; left: 0; width: 100%; height: 1.5px; }
-  #progress-fill {
-    height: 100%;
-    width: 0%;
-    background: var(--wire);
-    box-shadow: 0 0 12px var(--wire), 0 0 30px rgba(0,240,255,0.4);
-    transition: width 0.08s linear;
-  }
-
-  #scroll-cue {
-    bottom: 3.5rem; left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 0.55rem;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: var(--text);
-    animation: cue-in 1.2s 1.5s both;
-    transition: opacity 0.3s;
-  }
-  #scroll-cue::before {
-    content: '';
-    display: block;
-    width: 1px;
-    height: 36px;
-    background: linear-gradient(to bottom, transparent, var(--wire));
-    animation: drip 1.8s ease-in-out infinite;
-  }
-
-  .section-label {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--wire);
-    opacity: 0;
-    transition: opacity 0.6s ease;
-    line-height: 1.9;
-  }
-  .section-label strong {
-    display: block;
-    font-family: var(--display);
-    font-size: clamp(1.1rem, 2.5vw, 1.8rem);
-    letter-spacing: -0.02em;
-    color: var(--text-hi);
-    margin-top: 0.3rem;
-    font-weight: 700;
-  }
-  .section-label.visible { opacity: 1; }
-  #label-a { top: 50%; left: 6vw; transform: translateY(-50%); }
-  #label-b { top: 50%; right: 6vw; transform: translateY(-50%); text-align: right; }
-  #label-c { top: 50%; left: 6vw; transform: translateY(-50%); }
-  #label-d { top: 50%; right: 6vw; transform: translateY(-50%); text-align: right; }
-
-  @keyframes cue-in {
-    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-  }
-  @keyframes drip {
-    0%,100% { opacity: 0.25; transform: scaleY(0.85); transform-origin: top; }
-    50%      { opacity: 0.9;  transform: scaleY(1.1);  transform-origin: top; }
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(2,3,13,0.7) 100%);
-    pointer-events: none;
-    z-index: 1;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: repeating-linear-gradient(
-      0deg, transparent, transparent 2px,
-      rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px
-    );
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  .corner { position: fixed; width: 22px; height: 22px; z-index: 15; }
-  .corner svg { width: 100%; height: 100%; }
-  .corner.tl { top: 1.4rem; left: 1.4rem; }
-  .corner.tr { top: 1.4rem; right: 1.4rem; transform: scaleX(-1); }
-  .corner.bl { bottom: 1.4rem; left: 1.4rem; transform: scaleY(-1); }
-  .corner.br { bottom: 1.4rem; right: 1.4rem; transform: scale(-1); }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<canvas id="canvas"></canvas>
+<!-- ── Corners ── -->
+<div class="corner bl"><svg viewBox="0 0 18 18" fill="none"><path d="M18 18H0V0" stroke="#00f0ff" stroke-width="1" opacity="0.4"/></svg></div>
+<div class="corner br"><svg viewBox="0 0 18 18" fill="none"><path d="M18 18H0V0" stroke="#00f0ff" stroke-width="1" opacity="0.4"/></svg></div>
 
-<div class="corner tl"><svg viewBox="0 0 22 22" fill="none"><path d="M0 22V0h22" stroke="#00f0ff" stroke-width="1" opacity="0.5"/></svg></div>
-<div class="corner tr"><svg viewBox="0 0 22 22" fill="none"><path d="M0 22V0h22" stroke="#00f0ff" stroke-width="1" opacity="0.5"/></svg></div>
-<div class="corner bl"><svg viewBox="0 0 22 22" fill="none"><path d="M0 22V0h22" stroke="#00f0ff" stroke-width="1" opacity="0.5"/></svg></div>
-<div class="corner br"><svg viewBox="0 0 22 22" fill="none"><path d="M0 22V0h22" stroke="#00f0ff" stroke-width="1" opacity="0.5"/></svg></div>
+<!-- ── Navbar ── -->
+<nav>
+  <a class="nav-logo" href="#">AXJIANG</a>
+  <ul class="nav-links">
+    <li><a href="#" class="active">Home</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="resume.html">Resume</a></li>
+  </ul>
+</nav>
 
-<div class="hud stamp">
-  Alan Jiang / ST<br>
-  <!-- <b>COMBAT ROBOTICS AT BERKELEY</b><br> -->
-  COMBAT ROBOTICS AT BERKELEY<br>
-  SCROLL ↓ TO EXPLORE
-</div>
+<!-- ── Hero ── -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <p class="hero-tag">Portfolio</p>
+    <h1 class="hero-title">
+      Alan Jiang<br>UCB 2028<br><em>MechE</em><br><em>Combat Robotics</em>
+    </h1>
+    <p class="hero-sub">
+      VP of Engineering 2026-27<br>
+      1lb, 3lb, 12lb, 15lb, 30lb combat robots made here<br>
+    </p>
+    <a class="hero-cta" href="#projects">
+      <span>View Projects</span>
+    </a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <span class="stat-val">5</span>
+      Robots
+    </div>
+    <div>
+      <span class="stat-val">61</span>
+      Pounds
+    </div>
+    <div>
+      <span class="stat-val">2024-Present</span>
+      Active
+    </div>
+  </div>
+</section>
 
-<div class="hud readout">
-  <!-- VERTICES <em id="vCount">—</em><br>
-  EDGES&nbsp;&nbsp;&nbsp;&nbsp; <em id="eCount">—</em><br>
-  CAM θ&nbsp;&nbsp;&nbsp;&nbsp; <em id="camTheta">—</em><br>
-  CAM r&nbsp;&nbsp;&nbsp;&nbsp; <em id="camR">—</em><br>
-  CAM φ&nbsp;&nbsp;&nbsp;&nbsp; <em id="camP">-</em><br>
-  s <em id="scrollS">-</em> -->
-</div>
+<!-- ── Projects ── -->
+<section id="projects">
+  <div class="projects-inner">
+    <div class="section-header">
+      <span class="section-label">01</span>
+      <h2 class="section-title">Selected Work</h2>
+      <div class="section-line"></div>
+    </div>
 
-<div class="hud hero-title" id="heroTitle">
-  SYNTAX<br>TERROR
-  <sub>3lb Combat Robot - Swerve + Shuffle Drive</sub>
-</div>
+    <!-- Card 1 -->
+    <article class="project-card" data-color="#00f0ff" data-shape="ico" data-model="robort3.gltf">
+      <div class="card-model">
+        <canvas class="card-canvas" width="240" height="240"></canvas>
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+        <p class="card-index">SYNTAX TERROR</p>
+      </div>
+      <div class="card-content">
+        <div class="card-tags">
+          <span class="card-tag">3lb</span>
+          <span class="card-tag">Sheet Metal</span>
+          <span class="card-tag">3D Printing</span>
+          <span class="card-tag">Carbon Fiber</span>
+        </div>
+        <h3 class="card-title">Holonomic Combat Robot</h3>
+        <p class="card-desc">
+          Syntax Terror sports a first-of-its-kind omni-directional cam-driven shuffler drive. Materials used include 4340 Steel, 6061-T4 Aluminum, TPU, Carbon Fiber, SRPP
+        </p>
+        <div class="card-meta">
+          <div><span>Year</span>2025-2026</div>
+          <div><span>Role</span>Lead Engineer, Driver</div>
+          <!-- <div><span>Stack</span>Three.js / Python</div> -->
+        </div>
+        <a class="card-link" href="/syntax-terror.html"><span>View Project</span><span class="card-link-arrow">→</span></a>
+        <div class="card-links-row">
+          <a class="card-link-sm" href="#">TODO Link</a>
+          <a class="card-link-sm" href="#">TODO Link</a>
+          <a class="card-link-sm" href="#">TODO Link</a>
+        </div>
+      </div>
+    </article>
 
-<div class="hud section-label" id="label-a">Weapon<br><strong>340g Beater<br>32k rpm, 1.2kJ<br>4340 Steel</strong></div>
-<div class="hud section-label" id="label-b">Drive<br><strong>2x Shuffler Pods<br>3 MPH<br>Cast Urethane</strong></div>
-<div class="hud section-label" id="label-c">Body<br><strong>TPU Unibody<br>95A, 250g</strong></div>
-<div class="hud section-label" id="label-d">Armor<br><strong>Aluminum Plating<br>6061-T6</strong></div>
+    <!-- Card 5 -->
+    <article class="project-card" data-color="#ff3366" data-shape="sphere" data-model="robort4.gltf">
+      <div class="card-model">
+        <canvas class="card-canvas" width="240" height="240"></canvas>
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+        <p class="card-index">MALWARE</p>
+      </div>
+      <div class="card-content">
+        <div class="card-tags">
+          <span class="card-tag">30lb</span>
+          <span class="card-tag">Belt Transmission</span>
+          <span class="card-tag">3D Printing</span>
+        </div>
+        <h3 class="card-title">Featherweight Combat Robot</h3>
+        <p class="card-desc">
+          TODO: Description
+        </p>
+        <div class="card-meta">
+          <div><span>Year</span>2026</div>
+          <div><span>Role</span>Weapon System Engineer</div>
+        </div>
+        <a class="card-link" href="malw.html"><span>View Project</span><span class="card-link-arrow">→</span></a>
+        <div class="card-links-row">
+          <a class="card-link-sm" href="#">TODO Link</a>
+          <a class="card-link-sm" href="#">TODO Link</a>
+        </div>
+      </div>
+    </article>
 
-<div class="hud" id="progress-track"><div id="progress-fill"></div></div>
-<div class="hud" id="scroll-cue">scroll</div>
+    <!-- Card 2 -->
+    <article class="project-card" data-color="#00ffaa" data-shape="torus" data-model="robort3.gltf">
+      <div class="card-model">
+        <canvas class="card-canvas" width="240" height="240"></canvas>
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+        <p class="card-index">OURPLE</p>
+      </div>
+      <div class="card-content">
+        <div class="card-tags">
+          <span class="card-tag">15lb</span>
+          <span class="card-tag">Steel</span>
+          <span class="card-tag">Manual Mill</span>
+        </div>
+        <h3 class="card-title">Hobbyweight Combat Robot</h3>
+        <p class="card-desc">
+          TODO: Description
+        </p>
+        <div class="card-meta">
+          <div><span>Year</span>2025</div>
+          <div><span>Role</span>Integration, Driver</div>
+        </div>
+        <a class="card-link" href="#"><span>View Project</span><span class="card-link-arrow">→</span></a>
+        <div class="card-links-row">
+          <a class="card-link-sm" href="#">TODO Link</a>
+          <a class="card-link-sm" href="#">TODO Link</a>
+        </div>
+      </div>
+    </article>
 
+    <!-- Card 3 -->
+    <article class="project-card" data-color="#0055ff" data-shape="knot" data-model="robort3.gltf">
+      <div class="card-model">
+        <canvas class="card-canvas" width="240" height="240"></canvas>
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+        <p class="card-index">GLOBAL POUNDING</p>
+      </div>
+      <div class="card-content">
+        <div class="card-tags">
+          <span class="card-tag">12lb</span>
+          <span class="card-tag">Manual Lathe</span>
+          <span class="card-tag">3D Printing</span>
+        </div>
+        <h3 class="card-title">Torque Reaction Combat Robot</h3>
+        <p class="card-desc">
+          TODO: Description
+        </p>
+        <div class="card-meta">
+          <div><span>Year</span>2026</div>
+          <div><span>Role</span>Machinist</div>
+        </div>
+        <a class="card-link" href="#"><span>View Project</span><span class="card-link-arrow">→</span></a>
+        <div class="card-links-row">
+          <a class="card-link-sm" href="#">TODO Link</a>
+          <a class="card-link-sm" href="#">TODO Link</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 4 -->
+    <article class="project-card" data-color="#f5e642" data-shape="oct" data-model="robort3.gltf">
+      <div class="card-model">
+        <canvas class="card-canvas" width="240" height="240"></canvas>
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+        <p class="card-index">THE WEDGE</p>
+      </div>
+      <div class="card-content">
+        <div class="card-tags">
+          <span class="card-tag">1lb</span>
+          <span class="card-tag">3D Printing</span>
+        </div>
+        <h3 class="card-title">Plastic Antweight</h3>
+        <p class="card-desc">
+          TODO: Description
+        </p>
+        <div class="card-meta">
+          <div><span>Year</span>2024</div>
+          <div><span>Role</span>Design, Driver</div>
+        </div>
+        <a class="card-link" href="#"><span>View Project</span><span class="card-link-arrow">→</span></a>
+        <div class="card-links-row">
+          <a class="card-link-sm" href="#">TODO Link</a>
+          <a class="card-link-sm" href="#">TODO Link</a>
+        </div>
+      </div>
+    </article>
+
+  </div><!-- /projects-inner -->
+</section>
+
+<!-- ── About / Contact strip ── -->
+<section id="about">
+  <div class="about-text">
+    <p class="hero-tag">About</p>
+    <h2 class="about-title">Alan<br><em>Jiang</em></h2>
+    <p class="about-body">
+      Alan is a mechanical engineer at the University of California, Berkeley, graduating in 2028.
+      He likes building robots and singing a-cappella! Contact him to talk about robots!
+    </p>
+    <a class="hero-cta" href="resume.html">
+      <span>Download Resume</span>
+    </a>
+  </div>
+  <div class="about-links">
+    <a class="about-link-row" href="mailto:axjiang@berkeley.edu">
+      <span class="alink-label">Email</span>
+      <span class="alink-right">axjiang@berkeley.edu<span>↗</span></span>
+    </a>
+    <a class="about-link-row" href="https://github.com/AJPL88">
+      <span class="alink-label">GitHub</span>
+      <span class="alink-right">AJPL88 <span>↗</span></span>
+    </a>
+    <a class="about-link-row" href="https://linkedin.com/in/axhjiang/">
+      <span class="alink-label">LinkedIn</span>
+      <span class="alink-right">axhjiang <span>↗</span></span>
+    </a>
+    <a class="about-link-row" href="https://instagram.com/alienjianggg/">
+      <span class="alink-label">Instagram</span>
+      <span class="alink-right">@alienjianggg <span>↗</span></span>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <span>Alan Jiang © 2026</span>
+  <span>Built with Three.js & vanilla JS</span>
+  <span>Berkeley, CA</span>
+</footer>
+
+<!-- Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
 <script>
-/* ================================================================
-   RENDERER
-================================================================ */
-const canvas = document.getElementById('canvas');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x03040d, 1);
-
-const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x03040d, 0.055);
 
 /* ================================================================
-   CAMERA
+   UTILITY: hidden-line wireframe (same technique as wireframe page)
 ================================================================ */
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 200);
-const smooth = { radius: 7.5, theta: 0.0, phi: Math.PI / 5 };
-
-function applyCameraRig() {
-  const { radius: r, theta: th, phi: ph } = smooth;
-  camera.position.set(
-    r * Math.sin(ph) * Math.sin(th),
-    r * Math.cos(ph),
-    r * Math.sin(ph) * Math.cos(th)
-  );
-  camera.lookAt(0, 0, 0);
-}
-applyCameraRig();
-
-const lerp = (start, end, t) => start * (1 - t) + end * t;
-
-/* ================================================================
-   HIDDEN-LINE WIREFRAME HELPER
-   ------------------------------------------------------------------
-   How it works:
-     Step 1 — Render an invisible solid mesh that writes ONLY to the
-              depth buffer (colorWrite: false). It "claims" the depth
-              of every front-facing surface pixel.
-     Step 2 — Render the EdgeGeometry lines with depthTest: true.
-              Any line fragment that sits behind a front surface will
-              fail the depth test and get discarded — exactly the
-              hidden-line removal effect.
-
-   polygonOffset on the mask pushes its depth values very slightly
-   away from the camera so lines right on the silhouette edge don't
-   z-fight with the mask and disappear incorrectly.
-================================================================ */
-function makeHiddenLineWireframe(geo, color, opacity, crease = 15) {
+function makeHiddenLineWireframe(geo, colorHex, opacity, crease = 15) {
   const group = new THREE.Group();
-
-  // 1. Invisible depth-mask mesh
-  const maskMat = new THREE.MeshBasicMaterial({
-    color: 0x000000,
-    colorWrite: false,       // no colour output
-    depthWrite: true,        // but writes depth values
-    side: THREE.FrontSide,
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
-  });
-  group.add(new THREE.Mesh(geo, maskMat));
-
-  // 2. Visible edges — depth-tested against the mask above
+  // Depth mask
+  group.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+    colorWrite: false, depthWrite: true, side: THREE.FrontSide,
+    polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
+  })));
+  // Edges
   const edges   = new THREE.EdgesGeometry(geo, crease);
   const lineMat = new THREE.LineBasicMaterial({
-    color,
-    transparent: true,
-    opacity,
-    depthTest:  true,
-    depthWrite: false,
+    color: colorHex, transparent: true, opacity,
+    depthTest: true, depthWrite: false,
   });
-  const lines = new THREE.LineSegments(edges, lineMat);
-  group.add(lines);
-
-  group.userData.lineMat   = lineMat;
-  group.userData.edgeCount = edges.attributes.position.count / 2;
+  group.add(new THREE.LineSegments(edges, lineMat));
+  group.userData.lineMat = lineMat;
   return group;
 }
 
 /* ================================================================
-   SCENE OBJECTS
+   HERO BACKGROUND — full-bleed subtle sphere field
 ================================================================ */
-const wireGroup = new THREE.Group();
-scene.add(wireGroup);
+(function initHero() {
+  const canvas   = document.getElementById('hero-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setClearColor(0x000000, 0);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 
-let totalVerts = 0, totalEdges = 0;
-let primaryLineMat = null;
-const nodeGroups = [];
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.set(0, 0, 12);
 
-const GLTF_URL = 'robort3.gltf';
-new THREE.GLTFLoader().load(GLTF_URL, (gltf) => {
-  wireGroup.clear(); nodeGroups.length = 0;
-
-  gltf.scene.traverse(child => {
-    if (!child.isMesh) return;
-    child.updateWorldMatrix(true, false);
-    const geo = child.geometry.clone().applyMatrix4(child.matrixWorld);
-    wireGroup.add(makeHiddenLineWireframe(geo, 0x00f0ff, 0.95, 15));
-  });
-
-  // Auto-center & normalize
-  const box  = new THREE.Box3().setFromObject(wireGroup);
-  const size = box.getSize(new THREE.Vector3());
-  wireGroup.position.sub(box.getCenter(new THREE.Vector3()));
-  wireGroup.scale.setScalar(3.5 / Math.max(size.x, size.y, size.z));
-  
-}, undefined, console.error);
-
-/* ================================================================
-   BACKGROUND PARTICLES
-================================================================ */
-(function() {
-  const N = 1200, pos = new Float32Array(N * 3);
-  for (let i = 0; i < N; i++) {
-    const r = 15 + Math.random() * 25;
-    const t = Math.random() * Math.PI * 2;
-    const p = Math.acos(1 - 2 * Math.random());
-    pos[i*3]   = r * Math.sin(p) * Math.cos(t);
-    pos[i*3+1] = r * Math.cos(p);
-    pos[i*3+2] = r * Math.sin(p) * Math.sin(t);
+  // Large displaced sphere in background
+  const geo = new THREE.IcosahedronGeometry(3.5, 4);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const r = Math.sqrt(x*x+y*y+z*z);
+    const d = 0.3*Math.sin(x*3+y*2) + 0.15*Math.cos(y*5+z*3);
+    const s = (3.5+d)/r;
+    pos.setXYZ(i,x*s,y*s,z*s);
   }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x88ddff, size: 0.045, transparent: true, opacity: 0.4 })));
+  geo.computeVertexNormals();
+  const sphere = makeHiddenLineWireframe(geo, 0x00f0ff, 0.08, 12);
+  sphere.position.set(3, -1, -2);
+  scene.add(sphere);
+
+  // Floating particles
+  const N = 600, ppos = new Float32Array(N*3);
+  for (let i=0;i<N;i++){
+    ppos[i*3]   = (Math.random()-0.5)*20;
+    ppos[i*3+1] = (Math.random()-0.5)*15;
+    ppos[i*3+2] = (Math.random()-0.5)*10;
+  }
+  const pgeo = new THREE.BufferGeometry();
+  pgeo.setAttribute('position', new THREE.BufferAttribute(ppos,3));
+  scene.add(new THREE.Points(pgeo, new THREE.PointsMaterial({ color:0x00f0ff, size:0.035, transparent:true, opacity:0.35 })));
+
+  function resize() {
+    const w = canvas.parentElement.offsetWidth;
+    const h = canvas.parentElement.offsetHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const clock = new THREE.Clock();
+  (function loop() {
+    requestAnimationFrame(loop);
+    const t = clock.getElapsedTime();
+    sphere.rotation.y = t * 0.04;
+    sphere.rotation.x = t * 0.025;
+    renderer.render(scene, camera);
+  })();
 })();
 
 /* ================================================================
-   SCROLL
+   CARD MINI MODELS — one renderer per canvas
 ================================================================ */
-let scrollT = 0;
+const SHAPES = {
+  ico:    () => {
+    const g = new THREE.IcosahedronGeometry(1.1, 2);
+    const p = g.attributes.position;
+    for (let i=0;i<p.count;i++){
+      let x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+      const r=Math.sqrt(x*x+y*y+z*z);
+      const d=0.18*Math.sin(x*5+y*3)+0.09*Math.cos(y*7+z*4);
+      const s=(1.1+d)/r; p.setXYZ(i,x*s,y*s,z*s);
+    }
+    g.computeVertexNormals(); return g;
+  },
+  torus:  () => new THREE.TorusGeometry(0.9, 0.35, 16, 48),
+  knot:   () => new THREE.TorusKnotGeometry(0.7, 0.22, 80, 12, 2, 3),
+  oct:    () => new THREE.OctahedronGeometry(1.0, 2),
+  sphere: () => {
+    const g = new THREE.SphereGeometry(1.0, 16, 10);
+    const p = g.attributes.position;
+    for (let i=0;i<p.count;i++){
+      const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+      const r=Math.sqrt(x*x+y*y+z*z);
+      const d=0.15*Math.sin(x*6+y*4);
+      const s=(r+d)/r; p.setXYZ(i,x*s,y*s,z*s);
+    }
+    g.computeVertexNormals(); return g;
+  },
+};
 
-window.addEventListener('scroll', () => {
-  const max = document.body.scrollHeight - window.innerHeight;
-  scrollT   = Math.min(window.scrollY / max, 1);
-  document.getElementById('progress-fill').style.width = (scrollT * 100) + '%';
-  document.getElementById('heroTitle').style.opacity   = Math.max(0, 1 - scrollT * 5);
-  document.getElementById('scroll-cue').style.opacity  = Math.max(0, 1 - scrollT * 8);
-  document.getElementById('label-a').classList.toggle('visible', scrollT > 0.2 && scrollT < 0.35);
-  document.getElementById('label-b').classList.toggle('visible', scrollT > 0.35 && scrollT < 0.50);
-  document.getElementById('label-c').classList.toggle('visible', scrollT > 0.6 && scrollT < 1.01);
-  document.getElementById('label-d').classList.toggle('visible', scrollT > 0.6 && scrollT < 1.01);
-}, { passive: true });
+const SPIN_AXES = [
+//   [0.4,  1.0, 0.2],
+  [0,1,0.2],
+  [0,1,0.2],
+  [0,0,1],
+  [0.6,  0.8,-0.2],
+  [0.1,  1.0, 0.4],
+];
 
-/* ================================================================
-   ANIMATION LOOP
-================================================================ */
-const clock = new THREE.Clock();
+document.querySelectorAll('.project-card').forEach((card, i) => {
+  const canvas    = card.querySelector('.card-canvas');
+  const colorStr  = card.dataset.color || '#00f0ff';
+  const shape     = card.dataset.shape || 'ico';
+  const colorHex  = parseInt(colorStr.replace('#',''), 16);
+  const axis      = new THREE.Vector3(...SPIN_AXES[i % SPIN_AXES.length]).normalize();
 
-function animate() {
-  requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
-  const s = scrollT;
+  const renderer  = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setClearColor(0x000000, 0);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(240, 240);
 
-  let targetR  = 7.5 - s * 4.3;
-  let targetTh = s * Math.PI * 1.15*2;
-  let targetPh = Math.PI / 5 + s * (Math.PI / 2.2 - Math.PI / 5);
-  let sway     = Math.sin(t * 0.28) * 0.04 * (1 - Math.min(s * 4, 1));
-  if (s < 0.2) {
-    let u = 4*s
-    targetR = 7.5 - u * 3.75;
-    targetTh = u * 2 * 3.1415;
-    targetPh = 1.19
-    sway = Math.sin(t * 0.28) * 0.04 * (1 - Math.min(4*u, 1));
-  } else if (s < 0.35) {
-    targetR = 4.46;
-    targetTh = 310.6*3.1415/180.0;
-    targetPh = 1.19;
-    sway = 0;
-  } else if (s < 0.4) {
-    targetR = 4.46;
-    targetTh = 310.6*3.1415/180.0;
-    targetPh = 1.19 + (s-0.35)/0.05 * (3 - 1.19);
-    sway = 0;
-  } else if (s < 0.5) {
-    targetR = 4.46;
-    targetTh = lerp(310.6*3.1415/180.0,480*3.1415/180.0,(s-0.4)/0.1);
-    targetPh = 3;
-    sway = 0;
-  } else if (s < 0.6) {
-    targetR = 4.46;
-    targetTh = lerp(480*3.1415/180.0,360*3.1415/180.0,(s-0.5)/0.1)
-    targetPh = lerp(3,3.1415/2,(s-0.5)/0.1);
-    sway = 0;
-  } else {
-    targetR = 4.46;
-    targetTh = lerp(360*3.1415/180.0,-90*3.1415/180.0,(s-0.6)/0.4)
-    targetPh = 3.1415/2;
-    sway = 0;
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 50);
+  camera.position.set(0, 0, 4.5);
+  // Build mesh
+//   const geo = SHAPES[shape]?.() ?? SHAPES.ico();
+//   const wf  = makeHiddenLineWireframe(geo, colorHex, 0.9, 12);
+//   scene.add(wf);
+  const loader = new THREE.GLTFLoader();
+  
+  loader.load(card.dataset.model, (gltf) => {
+    const group = new THREE.Group();
+    gltf.scene.traverse(child => {
+        if (!child.isMesh) return;
+        child.updateWorldMatrix(true,false);
+        const geo = child.geometry.clone().applyMatrix4(child.matrixWorld);
+        group.add(makeHiddenLineWireframe(geo, colorHex, 0.9, 12));
+    });
+    const box = new THREE.Box3().setFromObject(group);
+    const size = box.getSize(new THREE.Vector3());
+    group.position.sub(box.getCenter(new THREE.Vector3()));
+    group.scale.setScalar(3/Math.max(size.x,size.y,size.z));
+    scene.add(group);
+  }, undefined, console.error);
+//   let wf = scene.children.at(-1);
+//   // Faint orbit ring
+//   const ringGeo   = new THREE.TorusGeometry(1.6, 0.006, 4, 100);
+//   const ringEdges = new THREE.EdgesGeometry(ringGeo);
+//   const ring      = new THREE.LineSegments(ringEdges, new THREE.LineBasicMaterial({ color: colorHex, transparent:true, opacity:0.12 }));
+//   ring.rotation.x = Math.PI/2 + (i * 0.3);
+//   scene.add(ring);
+
+  // Small particle halo
+  const N=80, pp=new Float32Array(N*3);
+  for(let j=0;j<N;j++){
+    const r=1.9+Math.random()*0.4, t=Math.random()*Math.PI*2, ph=Math.acos(1-2*Math.random());
+    pp[j*3]=r*Math.sin(ph)*Math.cos(t); pp[j*3+1]=r*Math.cos(ph); pp[j*3+2]=r*Math.sin(ph)*Math.sin(t);
   }
-  
-  // const targetR  = 7.5 - s * 4.3;
-  // const targetTh = s * Math.PI * 1.15;
-  // const targetPh = Math.PI / 5 + s * (Math.PI / 2.2 - Math.PI / 5);
-  // const sway     = Math.sin(t * 0.28) * 0.04 * (1 - Math.min(s * 4, 1));
-  // if (s < 0.1) targetTh += 0.0035 * (1 - s * 0.6);
-  if (s < 0.1) targetTh += 0.67*Math.sin(0.67*t - 0.5*3.1415) - 3.1415/2 - 3.1415/6;
+  const pgeo=new THREE.BufferGeometry(); pgeo.setAttribute('position',new THREE.BufferAttribute(pp,3));
+  scene.add(new THREE.Points(pgeo, new THREE.PointsMaterial({color:colorHex,size:0.03,transparent:true,opacity:0.35})));
 
-  smooth.radius += (targetR          - smooth.radius) * 0.055;
-  smooth.theta  += (targetTh + sway  - smooth.theta)  * 0.055;
-  smooth.phi    += (targetPh         - smooth.phi)    * 0.055;
-  applyCameraRig();
+  let hovered = false;
+  canvas.addEventListener('mouseenter', () => hovered = true);
+  canvas.addEventListener('mouseleave', () => hovered = false);
 
-  // if (s < 0.1) {wireGroup.rotation.y += 0.0035 * (1 - s)} else {wireGroup.rotation.y += 0};
-  // if (Math.abs(wireGroup.rotation.y) > 2*Math.PI) wireGroup.rotation.y += -1 * Math.sign(wireGroup.rotation.y) * 2 * Math.PI
-  
-  wireGroup.position.y  = Math.sin(t * 0.38) * 0.07;
+  const clock = new THREE.Clock();
+  let phase   = i * 1.3;
 
-  nodeGroups.forEach(n => { n.rotation.x += 0.012; n.rotation.z += 0.008; });
-
-  if (primaryLineMat) primaryLineMat.opacity = 0.80 + 0.15 * Math.sin(t * 0.9);
-
-  // document.getElementById('vCount').textContent   = totalVerts.toLocaleString();
-  // document.getElementById('eCount').textContent   = totalEdges.toLocaleString();
-  // document.getElementById('camTheta').textContent = (smooth.theta * 180 / Math.PI).toFixed(1) + '°';
-  // document.getElementById('camR').textContent     = smooth.radius.toFixed(2);
-  // document.getElementById('camP').textContent     = smooth.phi.toFixed(2);
-  // document.getElementById('scrollS').textContent  = scrollT.toFixed(4);
-
-  renderer.render(scene, camera);
-}
-
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  (function loop() {
+    requestAnimationFrame(loop);
+    const t = clock.getElapsedTime() + phase;
+    const speed = hovered ? 0.03 : 0.01;
+    let wf = scene.children.at(-1);
+    wf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(axis, speed));
+    // wf.rotation.z += 0.03
+    // Gentle bob
+    wf.position.y = Math.sin(t * 0.8) * 0.06;
+    // ring.rotation.z += 0.003;
+    renderer.render(scene, camera);
+  })();
 });
 
-animate();
+/* ================================================================
+   INTERSECTION OBSERVER — cards fade in on scroll
+================================================================ */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.project-card').forEach((c, i) => {
+  c.style.transitionDelay = `${i * 0.07}s`;
+  observer.observe(c);
+});
+
+/* ================================================================
+   NAV — highlight active section
+================================================================ */
+const sections = [
+  { id: 'hero',     link: document.querySelector('.nav-links a[href="#"]') },
+  { id: 'projects', link: document.querySelector('.nav-links a[href="#projects"]') },
+];
+
+window.addEventListener('scroll', () => {
+  const y = window.scrollY + 100;
+  sections.forEach(({ id, link }) => {
+    if (!link) return;
+    const el = id === 'hero' ? document.getElementById('hero') : document.getElementById(id);
+    if (!el) return;
+    const top = el.offsetTop, bot = top + el.offsetHeight;
+    link.classList.toggle('active', y >= top && y < bot);
+  });
+}, { passive: true });
+
 </script>
 </body>
 </html>
