@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXJIANG — Video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+/* ── Video page extras (built on top of style.css tokens) ──── */
+
+/* ── Page header ── */
+.page-header {
+  padding: calc(var(--nav-h) + 2rem) 2.5rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.page-header::before {
+  content: 'VIDEO';
+  position: absolute;
+  right: -0.5rem; bottom: -1rem;
+  font-family: var(--display);
+  font-size: clamp(8rem, 18vw, 15rem);
+  font-weight: 900;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(0,240,255,0.04);
+  pointer-events: none;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.page-header-inner {
+  max-width: 1200px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.page-eyebrow {
+  font-size: 0.58rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--wire);
+  opacity: 0.7;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.page-eyebrow::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: var(--wire);
+  opacity: 0.5;
+}
+
+.page-title {
+  font-family: var(--display);
+  font-size: clamp(2.5rem, 6vw, 6rem);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  color: #fff;
+  text-shadow: 0 0 80px rgba(0,240,255,0.1);
+}
+.page-title em {
+  font-style: normal;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(0,240,255,0.5);
+}
+
+.page-header-stat {
+  text-align: right;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  color: var(--text);
+}
+.page-header-stat .stat-val {
+  display: block;
+  font-family: var(--display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--wire);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+  text-shadow: 0 0 20px rgba(0,240,255,0.4);
+}
+
+/* ── Shell: sidebar + panels ── */
+.video-shell {
+  max-width: 1200px;
+  padding: 0.5rem 2.5rem 6rem;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 0 3.5rem;
+  align-items: start;
+}
+
+/* ── Tab sidebar ── */
+.tab-sidebar {
+  position: sticky;
+  top: calc(var(--nav-h) + 1.5rem);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-sidebar-label {
+  font-size: 0.5rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--wire);
+  opacity: 0.45;
+  padding: 0.65rem 1rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.tab-btn:last-child { border-bottom: none; }
+.tab-btn:hover { background: rgba(0,240,255,0.03); }
+.tab-btn.active { background: rgba(0,240,255,0.05); }
+
+/* cyan left stripe on active */
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--wire);
+  transform: scaleY(0);
+  transition: transform 0.18s;
+  transform-origin: bottom;
+}
+.tab-btn.active::before { transform: scaleY(1); }
+
+.tab-btn-inner { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+
+.tab-num {
+  font-size: 0.42rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--wire);
+  opacity: 0.4;
+}
+.tab-name {
+  font-family: var(--display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  transition: color 0.18s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tab-btn.active .tab-name,
+.tab-btn:hover .tab-name { color: var(--wire); }
+
+.tab-cat {
+  font-size: 0.42rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.3;
+}
+
+/* ── Panel ── */
+.tab-panels { min-width: 0; }
+
+.tab-panel { display: none; }
+.tab-panel.active {
+  display: block;
+  animation: panelIn 0.4s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Video player ── */
+.video-player-wrap {
+  position: relative;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  margin-bottom: 2rem;
+}
+.video-ratio {
+  position: relative;
+  padding-bottom: 56.25%;
+  overflow: hidden;
+}
+.video-ratio video,
+.video-ratio iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: none;
+  background: #000;
+}
+
+/* HUD overlays */
+.vp-hud {
+  position: absolute;
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wire);
+  opacity: 0.45;
+  pointer-events: none;
+  line-height: 1.7;
+  z-index: 10;
+}
+.vp-hud.tl { top: 0.9rem; left: 1rem; }
+.vp-hud.tr { top: 0.9rem; right: 1rem; text-align: right; }
+.vp-corner {
+  position: absolute;
+  width: 14px; height: 14px;
+  pointer-events: none;
+  z-index: 10;
+}
+.vp-corner.tl { top: .6rem; left: .6rem; border-top: 1.5px solid var(--wire); border-left: 1.5px solid var(--wire); opacity:.5; }
+.vp-corner.tr { top: .6rem; right: .6rem; border-top: 1.5px solid var(--wire); border-right: 1.5px solid var(--wire); opacity:.5; }
+.vp-corner.bl { bottom: .6rem; left: .6rem; border-bottom: 1.5px solid var(--wire); border-left: 1.5px solid var(--wire); opacity:.5; }
+.vp-corner.br { bottom: .6rem; right: .6rem; border-bottom: 1.5px solid var(--wire); border-right: 1.5px solid var(--wire); opacity:.5; }
+
+/* scanline */
+.vp-scan {
+  position: absolute; left: 0; right: 0;
+  height: 1px;
+  background: var(--wire);
+  opacity: 0.07;
+  pointer-events: none;
+  z-index: 10;
+  animation: scanV 6s linear infinite;
+}
+@keyframes scanV { from { top: 0; } to { top: 100%; } }
+
+/* ── Video meta ── */
+.video-meta-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.8rem;
+}
+.video-meta-left { flex: 1; min-width: 0; }
+
+/* reuse card-tags / card-tag from style.css */
+.video-title {
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 2.5vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--text-hi);
+  margin-bottom: 0.9rem;
+}
+.video-title em {
+  font-style: normal;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(0,240,255,0.45);
+}
+.video-desc {
+  font-size: 0.68rem;
+  line-height: 1.95;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  max-width: 520px;
+}
+
+/* meta table — mirrors card-meta style */
+.video-meta-table {
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  min-width: 180px;
+}
+.vmt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.vmt-row:last-child { border-bottom: none; }
+.vmt-k { opacity: 0.45; }
+.vmt-v { color: var(--wire); }
+
+/* ── Sub-section divider (reuses section-label styling) ── */
+.sub-divider {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 2rem 0 1.2rem;
+}
+.sub-divider-label {
+  font-size: 0.52rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--wire);
+  opacity: 0.5;
+  white-space: nowrap;
+}
+.sub-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Clip grid ── */
+.clip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.7rem;
+}
+.clip-card {
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.clip-card:hover { border-color: var(--wire-dim); background: rgba(0,240,255,0.03); }
+.clip-card.playing { border-color: var(--wire); box-shadow: 0 0 16px rgba(0,240,255,0.12); }
+.clip-card.playing::after {
+  content: '▶ NOW PLAYING';
+  position: absolute;
+  top: 0.4rem; left: 0.4rem;
+  font-size: 0.38rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--wire);
+  padding: 0.15rem 0.45rem;
+  z-index: 5;
+}
+
+.clip-thumb {
+  position: relative;
+  padding-bottom: 56.25%;
+  background: var(--bg2);
+  overflow: hidden;
+}
+.clip-thumb img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.clip-play {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  color: var(--wire);
+  opacity: 0;
+  background: rgba(2,4,9,0.5);
+  transition: opacity 0.18s;
+  text-shadow: 0 0 12px rgba(0,240,255,0.6);
+}
+.clip-card:hover .clip-play { opacity: 1; }
+
+.clip-info { padding: 0.5rem 0.6rem 0.55rem; }
+.clip-num {
+  font-size: 0.4rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--wire);
+  opacity: 0.4;
+  margin-bottom: 0.2rem;
+}
+.clip-title {
+  font-family: var(--display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-hi);
+  line-height: 1.1;
+  margin-bottom: 0.15rem;
+  letter-spacing: -0.01em;
+}
+.clip-dur {
+  font-size: 0.42rem;
+  letter-spacing: 0.1em;
+  color: var(--text);
+  opacity: 0.35;
+}
+
+/* ── Panel prev/next nav ── */
+.panel-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.panel-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.55rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+}
+.panel-nav-btn:hover {
+  color: var(--wire);
+  border-color: var(--wire-dim);
+  background: rgba(0,240,255,0.04);
+}
+.panel-nav-btn:disabled { opacity: 0.2; cursor: default; }
+.panel-nav-btn:disabled:hover {
+  color: var(--text); border-color: var(--border); background: transparent;
+}
+.panel-nav-index {
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.35;
+}
+
+/* ── Credits grid ── */
+.credits-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.credits-block {
+  border: 1px solid var(--border);
+  padding: 1.1rem 1.3rem;
+}
+.credits-label {
+  font-size: 0.46rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--wire);
+  opacity: 0.45;
+  margin-bottom: 0.6rem;
+}
+.credits-name {
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-hi);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+.credits-role {
+  font-size: 0.46rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.4;
+}
+
+/* ── Responsive ── */
+@media (max-width: 720px) {
+  .video-shell { grid-template-columns: 1fr; gap: 2rem; }
+  .tab-sidebar { position: static; flex-direction: row; overflow-x: auto; }
+  .tab-sidebar-label { display: none; }
+  .tab-btn { border-bottom: none; border-right: 1px solid var(--border); min-width: 90px; flex-direction: column; align-items: center; padding: 0.7rem 0.6rem; }
+  .tab-btn::before { top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 2px; transform: scaleX(0); transform-origin: left; }
+  .tab-btn.active::before { transform: scaleX(1); }
+  .video-meta-row { flex-direction: column; }
+  .credits-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Corners ── -->
+<div class="corner bl"><svg viewBox="0 0 18 18" fill="none"><path d="M18 18H0V0" stroke="#00f0ff" stroke-width="1" opacity="0.4"/></svg></div>
+<div class="corner br"><svg viewBox="0 0 18 18" fill="none"><path d="M18 18H0V0" stroke="#00f0ff" stroke-width="1" opacity="0.4"/></svg></div>
+
+<!-- ── Navbar ── -->
+<nav>
+  <a class="nav-logo" href="index.html">AXJIANG</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="index.html#projects">Projects</a></li>
+    <li><a href="videos.html" class="active">Video</a></li>
+  </ul>
+</nav>
+
+<!-- ── Page header ── -->
+<header class="page-header">
+  <div class="page-header-inner">
+    <div>
+      <!-- <p class="page-eyebrow">Combat Robotics — Motion</p> -->
+      <h4 class="page-title">VIDEOS</h4>
+    </div>
+    <!-- <div class="page-header-stat">
+      <span class="stat-val">05</span>
+      Videos
+    </div> -->
+  </div>
+</header>
+
+<!-- ── Main ── -->
+<div class="video-shell">
+
+  <!-- Sidebar -->
+  <aside class="tab-sidebar" role="tablist">
+    <div class="tab-sidebar-label">// Videos</div>
+
+    <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="panel-1" data-tab="1">
+      <div class="tab-btn-inner">
+        <span class="tab-num">VID / 01</span>
+        <span class="tab-name">Syntax Terror</span>
+        <span class="tab-cat">3lb Robot</span>
+      </div>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-2" data-tab="2">
+      <div class="tab-btn-inner">
+        <span class="tab-num">VID / 02</span>
+        <span class="tab-name">Malware</span>
+        <span class="tab-cat">30lb Robot</span>
+      </div>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-3" data-tab="3">
+      <div class="tab-btn-inner">
+        <span class="tab-num">VID / 03</span>
+        <span class="tab-name">Global Pounding</span>
+        <span class="tab-cat">12lb Robot</span>
+      </div>
+    </button>
+    <!-- <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-4" data-tab="4">
+      <div class="tab-btn-inner">
+        <span class="tab-num">VID / 04</span>
+        <span class="tab-name">Fight Footage</span>
+        <span class="tab-cat">Competition</span>
+      </div>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-5" data-tab="5">
+      <div class="tab-btn-inner">
+        <span class="tab-num">VID / 05</span>
+        <span class="tab-name">Build Logs</span>
+        <span class="tab-cat">Process</span>
+      </div>
+    </button> -->
+  </aside>
+
+  <!-- Panels -->
+  <div class="tab-panels">
+
+    <!-- ═══ Panel 1 — Syntax Terror ═══ -->
+    <div class="tab-panel active" id="panel-1" role="tabpanel">
+      <div class="sub-divider">
+        <span class="sub-divider-label">// Clips</span>
+        <div class="sub-divider-line"></div>
+      </div>
+      <div class="clip-grid">
+        <div class="clip-card playing" data-src="videos/syntax_driving.mov">
+          <!-- <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div> -->
+          <div class="clip-info"><div class="clip-num">CLIP / 01</div><div class="clip-title">Shuffling</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/syntax_simulation.mp4">
+          <!-- <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div> -->
+          <div class="clip-info"><div class="clip-num">CLIP / 02</div><div class="clip-title">Simulation</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/syntax_simulation2.mp4">
+          <!-- <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div> -->
+          <div class="clip-info"><div class="clip-num">CLIP / 03</div><div class="clip-title">Upside-Down</div><div class="clip-dur">0:00</div></div>
+        </div>
+      </div>
+      <div class="video-player-wrap">
+        <div class="video-ratio">
+          <video autoplay controls preload="metadata">
+            <source src="videos/syntax_driving.mov" type="video/mp4">
+          </video>
+        </div>
+        <div class="vp-corner tl"></div><div class="vp-corner tr"></div>
+        <div class="vp-corner bl"></div><div class="vp-corner br"></div>
+        <div class="vp-hud tl">Syntax Terror<br>VID / 01</div>
+        <div class="vp-hud tr">3lb // Omni Drive<br>2025–2026</div>
+        <div class="vp-scan"></div>
+      </div>
+
+      <div class="video-meta-row">
+        <div class="video-meta-left">
+          <div class="card-tags" style="margin-bottom:0.8rem;">
+            <span class="card-tag">3lb</span>
+            <span class="card-tag">Sheet Metal</span>
+            <span class="card-tag">3D Printing</span>
+            <span class="card-tag">Carbon Fiber</span>
+          </div>
+          <h2 class="video-title">Syntax Terror</h2>
+          <p class="video-desc">
+            First-of-its-kind omni-directional cam-driven shuffler drive. Full robot walkthrough, drive demo, and weapon spin-up test. Materials: 4340 Steel, 6061-T4 Aluminum, TPU, Carbon Fiber, SRPP.
+          </p>
+        </div>
+        <div class="video-meta-table">
+          <div class="vmt-row"><span class="vmt-k">Weight</span><span class="vmt-v">3 lb</span></div>
+          <div class="vmt-row"><span class="vmt-k">Year</span><span class="vmt-v">2025–2026</span></div>
+          <div class="vmt-row"><span class="vmt-k">Role</span><span class="vmt-v">Lead / Driver</span></div>
+          <div class="vmt-row"><span class="vmt-k">Drive</span><span class="vmt-v">Omni Shuffler</span></div>
+        </div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="panel-nav-btn" disabled>← Prev</button>
+        <span class="panel-nav-index">01 / 03</span>
+        <button class="panel-nav-btn" data-goto="2">Next →</button>
+      </div>
+    </div>
+
+    <!-- ═══ Panel 2 — Malware ═══ -->
+    <div class="tab-panel" id="panel-2" role="tabpanel">
+      <div class="video-player-wrap">
+        <div class="video-ratio">
+          <iframe width="996" height="560" src="https://www.youtube.com/embed/VOS3b7VQvg8?enablejsapi=1&autoplay=1" title="Malware vs Professor Wasp" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+        <div class="vp-corner tl"></div><div class="vp-corner tr"></div>
+        <div class="vp-corner bl"></div><div class="vp-corner br"></div>
+        <div class="vp-hud tl">Malware<br>VID / 02</div>
+        <div class="vp-hud tr">30lb // Eggbeater<br>2026</div>
+        <div class="vp-scan"></div>
+      </div>
+
+      <div class="video-meta-row">
+        <div class="video-meta-left">
+          <div class="card-tags" style="margin-bottom:0.8rem;">
+            <span class="card-tag">30lb</span>
+            <span class="card-tag">Belt Transmission</span>
+            <span class="card-tag">3D Printing</span>
+            <span class="card-tag">AR500</span>
+          </div>
+          <h2 class="video-title">Malware</h2>
+          <p class="video-desc">
+            Featherweight eggbeater running a ~9lb weapon storing ~4kJ of energy. Weapon transmission system design including pulleys and belt tensioning. Materials: AR500, 6061-T4 Aluminum, hardened 4340 Steel, TPU.
+          </p>
+        </div>
+        <div class="video-meta-table">
+          <div class="vmt-row"><span class="vmt-k">Weight</span><span class="vmt-v">30 lb</span></div>
+          <div class="vmt-row"><span class="vmt-k">Year</span><span class="vmt-v">2026</span></div>
+          <div class="vmt-row"><span class="vmt-k">Role</span><span class="vmt-v">Weapon Engineer</span></div>
+          <div class="vmt-row"><span class="vmt-k">Weapon</span><span class="vmt-v">Eggbeater</span></div>
+          <div class="vmt-row"><span class="vmt-k">Energy</span><span class="vmt-v">~4 kJ</span></div>
+        </div>
+      </div>
+
+      <!-- <div class="sub-divider">
+        <span class="sub-divider-label">// Clips</span>
+        <div class="sub-divider-line"></div>
+      </div>
+      <div class="clip-grid">
+        <div class="clip-card playing" data-src="https://youtu.be/VOS3b7VQvg8">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">CLIP / 01</div><div class="clip-title">Overview</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/malware-weapon.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">CLIP / 02</div><div class="clip-title">Weapon System</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/malware-belt.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">CLIP / 03</div><div class="clip-title">Belt Tensioning</div><div class="clip-dur">0:00</div></div>
+        </div>
+      </div> -->
+
+      <div class="panel-nav">
+        <button class="panel-nav-btn" data-goto="1">← Prev</button>
+        <span class="panel-nav-index">02 / 03</span>
+        <button class="panel-nav-btn" data-goto="3">Next →</button>
+      </div>
+    </div>
+
+    <!-- ═══ Panel 3 — Global Pounding ═══ -->
+    <div class="tab-panel" id="panel-3" role="tabpanel">
+      <div class="video-player-wrap">
+        <div class="video-ratio">
+          <iframe width="996" height="560" src="https://www.youtube.com/embed/qByY0PwQKk4?enablejsapi=1" title="Global Pounding" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+        <div class="vp-corner tl"></div><div class="vp-corner tr"></div>
+        <div class="vp-corner bl"></div><div class="vp-corner br"></div>
+        <div class="vp-hud tl">Global Pounding<br>VID / 03</div>
+        <div class="vp-hud tr">12lb // Torque Reaction<br>2026</div>
+        <div class="vp-scan"></div>
+      </div>
+
+      <div class="video-meta-row">
+        <div class="video-meta-left">
+          <div class="card-tags" style="margin-bottom:0.8rem;">
+            <span class="card-tag">12lb</span>
+            <span class="card-tag">Manual Lathe</span>
+            <span class="card-tag">SR500</span>
+          </div>
+          <h2 class="video-title">Global Pounding</h2>
+          <p class="video-desc">
+            Torque-reaction drive concept: forward translation induced by varying angular acceleration of two large spinning masses. Machined weapon system including 4340 steel spacers, aluminum pulleys and hubs, and two SR500 blades.
+          </p>
+        </div>
+        <div class="video-meta-table">
+          <div class="vmt-row"><span class="vmt-k">Weight</span><span class="vmt-v">12 lb</span></div>
+          <div class="vmt-row"><span class="vmt-k">Year</span><span class="vmt-v">2026</span></div>
+          <div class="vmt-row"><span class="vmt-k">Role</span><span class="vmt-v">Machinist</span></div>
+          <div class="vmt-row"><span class="vmt-k">Drive</span><span class="vmt-v">Torque Reaction</span></div>
+        </div>
+      </div>
+
+      <!-- <div class="sub-divider">
+        <span class="sub-divider-label">// Clips</span>
+        <div class="sub-divider-line"></div>
+      </div>
+      <div class="clip-grid">
+        <div class="clip-card playing" data-src="videos/global-pounding.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">CLIP / 01</div><div class="clip-title">Overview</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/global-pounding-lathe.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">CLIP / 02</div><div class="clip-title">Lathe Work</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/global-pounding-spinup.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">CLIP / 03</div><div class="clip-title">Spin-up Test</div><div class="clip-dur">0:00</div></div>
+        </div>
+      </div> -->
+
+      <div class="panel-nav">
+        <button class="panel-nav-btn" data-goto="2">← Prev</button>
+        <span class="panel-nav-index">03 / 03</span>
+        <button class="panel-nav-btn" disabled>Next →</button>
+      </div>
+    </div>
+
+    <!-- ═══ Panel 4 — Fight Footage ═══ -->
+    <!-- <div class="tab-panel" id="panel-4" role="tabpanel">
+      <div class="video-player-wrap">
+        <div class="video-ratio">
+          <video controls preload="metadata">
+            <source src="videos/fights.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="vp-corner tl"></div><div class="vp-corner tr"></div>
+        <div class="vp-corner bl"></div><div class="vp-corner br"></div>
+        <div class="vp-hud tl">Fight Footage<br>VID / 04</div>
+        <div class="vp-hud tr">Competition<br>2024–2026</div>
+        <div class="vp-scan"></div>
+      </div>
+
+      <div class="video-meta-row">
+        <div class="video-meta-left">
+          <div class="card-tags" style="margin-bottom:0.8rem;">
+            <span class="card-tag">Competition</span>
+            <span class="card-tag">RCE</span>
+            <span class="card-tag">1lb–30lb</span>
+          </div>
+          <h2 class="video-title">Fight <em>Footage</em></h2>
+          <p class="video-desc">
+            Match recordings from competitions across all weight classes. Clips include Syntax Terror fights at RobotCombatEvents and Malware's debut season.
+          </p>
+        </div>
+        <div class="video-meta-table">
+          <div class="vmt-row"><span class="vmt-k">Classes</span><span class="vmt-v">1–30 lb</span></div>
+          <div class="vmt-row"><span class="vmt-k">Period</span><span class="vmt-v">2024–2026</span></div>
+          <div class="vmt-row"><span class="vmt-k">Events</span><span class="vmt-v">RCE</span></div>
+        </div>
+      </div>
+
+      <div class="sub-divider">
+        <span class="sub-divider-label">// Matches</span>
+        <div class="sub-divider-line"></div>
+      </div>
+      <div class="clip-grid">
+        <div class="clip-card playing" data-src="videos/fights.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">MATCH / 01</div><div class="clip-title">Fight 1</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/fight-2.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">MATCH / 02</div><div class="clip-title">Fight 2</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/fight-3.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">MATCH / 03</div><div class="clip-title">Fight 3</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/fight-4.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">MATCH / 04</div><div class="clip-title">Fight 4</div><div class="clip-dur">0:00</div></div>
+        </div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="panel-nav-btn" data-goto="3">← Prev</button>
+        <span class="panel-nav-index">04 / 05</span>
+        <button class="panel-nav-btn" data-goto="5">Next →</button>
+      </div>
+    </div> -->
+
+    <!-- ═══ Panel 5 — Build Logs ═══ -->
+    <!-- <div class="tab-panel" id="panel-5" role="tabpanel">
+      <div class="video-player-wrap">
+        <div class="video-ratio">
+          <video controls preload="metadata">
+            <source src="videos/build-log.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="vp-corner tl"></div><div class="vp-corner tr"></div>
+        <div class="vp-corner bl"></div><div class="vp-corner br"></div>
+        <div class="vp-hud tl">Build Logs<br>VID / 05</div>
+        <div class="vp-hud tr">Process<br>2024–Present</div>
+        <div class="vp-scan"></div>
+      </div>
+
+      <div class="video-meta-row">
+        <div class="video-meta-left">
+          <div class="card-tags" style="margin-bottom:0.8rem;">
+            <span class="card-tag">Process</span>
+            <span class="card-tag">Machining</span>
+            <span class="card-tag">Assembly</span>
+          </div>
+          <h2 class="video-title">Build <em>Logs</em></h2>
+          <p class="video-desc">
+            Behind-the-scenes footage of the fabrication process — lathe work, manual milling, assembly, wiring, and testing. Documents the build of all robots from raw stock to competition-ready.
+          </p>
+        </div>
+        <div class="video-meta-table">
+          <div class="vmt-row"><span class="vmt-k">Period</span><span class="vmt-v">2024–Present</span></div>
+          <div class="vmt-row"><span class="vmt-k">Content</span><span class="vmt-v">Process</span></div>
+          <div class="vmt-row"><span class="vmt-k">Tools</span><span class="vmt-v">Lathe, Mill</span></div>
+        </div>
+      </div>
+
+      <div class="sub-divider">
+        <span class="sub-divider-label">// Log Entries</span>
+        <div class="sub-divider-line"></div>
+      </div>
+      <div class="clip-grid">
+        <div class="clip-card playing" data-src="videos/build-log.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">LOG / 01</div><div class="clip-title">Lathe Session</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/build-log-2.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">LOG / 02</div><div class="clip-title">Assembly</div><div class="clip-dur">0:00</div></div>
+        </div>
+        <div class="clip-card" data-src="videos/build-log-3.mp4">
+          <div class="clip-thumb"><img src="" alt=""><div class="clip-play">▶</div></div>
+          <div class="clip-info"><div class="clip-num">LOG / 03</div><div class="clip-title">Wiring</div><div class="clip-dur">0:00</div></div>
+        </div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="panel-nav-btn" data-goto="4">← Prev</button>
+        <span class="panel-nav-index">05 / 05</span>
+        <button class="panel-nav-btn" disabled>Next →</button>
+      </div>
+    </div> -->
+
+  </div><!-- /tab-panels -->
+</div><!-- /video-shell -->
+
+<footer>
+  <span>Alan Jiang © 2026</span>
+  <span>Built with help from AI</span>
+  <span>Berkeley, CA</span>
+</footer>
+
+<script>
+/* ── Tab switching ── */
+const tabs   = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.tab-panel');
+
+// function switchTo(n) {
+//   const idx = n - 1;
+//   tabs.forEach((t, i) => {
+//     t.classList.toggle('active', i === idx);
+//     t.setAttribute('aria-selected', i === idx);
+//   });
+//   panels.forEach((p, i) => {
+//     p.classList.toggle('active', i === idx);
+//     if (i !== idx) { const v = p.querySelector('video'); if (v) v.pause(); }
+//   });
+//   document.querySelector('.tab-panels').scrollIntoView({ behavior: 'smooth', block: 'start' });
+// }
+function switchTo(n) {
+  const idx = n - 1;
+  tabs.forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+    t.setAttribute('aria-selected', i === idx);
+  });
+  panels.forEach((p, i) => {
+    p.classList.toggle('active', i === idx);
+    if (i !== idx) {
+      // Pause native <video>
+      const v = p.querySelector('video');
+      if (v) v.pause();
+      // Pause YouTube <iframe> via postMessage (requires ?enablejsapi=1 in src)
+      const f = p.querySelector('iframe');
+      if (f) f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+    }
+  });
+  document.querySelector('.tab-panels').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+tabs.forEach((btn, i) => btn.addEventListener('click', () => switchTo(i + 1)));
+
+document.querySelectorAll('[data-goto]').forEach(btn => {
+  btn.addEventListener('click', () => switchTo(parseInt(btn.dataset.goto)));
+});
+
+/* ── Clip grid ── */
+document.querySelectorAll('.clip-grid').forEach(grid => {
+  const panel   = grid.closest('.tab-panel');
+  const player  = panel.querySelector('video');
+  const clips   = grid.querySelectorAll('.clip-card');
+  clips.forEach(clip => {
+    clip.addEventListener('click', () => {
+      const src = clip.dataset.src;
+      if (!src || !player) return;
+      clips.forEach(c => c.classList.remove('playing'));
+      clip.classList.add('playing');
+      const wasPlaying = !player.paused;
+      player.src = src;
+      player.load();
+      if (wasPlaying) player.play();
+      panel.querySelector('.video-player-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+});
+
+/* ── Keyboard nav ── */
+document.addEventListener('keydown', e => {
+  if (document.activeElement.tagName === 'VIDEO') return;
+  const active = [...tabs].findIndex(t => t.classList.contains('active'));
+  if (e.key === 'ArrowRight' && active < tabs.length - 1) switchTo(active + 2);
+  if (e.key === 'ArrowLeft'  && active > 0)               switchTo(active);
+});
+</script>
+</body>
+</html>
